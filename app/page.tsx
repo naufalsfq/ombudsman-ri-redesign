@@ -20,6 +20,8 @@ interface PersonalData {
   nik:string; nama:string; hp:string; email:string;
   alamat:string; provinsi:string; kota:string;
   rahasiakan:boolean;
+  namaOrganisasi:string;
+  jabatan:string;
 }
 interface ComplaintData { perihal:string; instansi:string; kronologi:string; harapan:string; }
 interface EvidenceData { ktpFiles:string[]; docFiles:string[]; consent:boolean; }
@@ -31,15 +33,27 @@ interface DetailData { id:string; title:string; intro:string; requirements?:{ico
 let pendingScroll:string|null=null;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+const NAVBAR_HEIGHT = 68;
+
 const go=(p:Page)=>{
+  // Clear any hash when navigating to a new page
   history.pushState({},'',p==='home'?'/':'/'+p);
   window.dispatchEvent(new PopStateEvent('popstate'));
 };
+
 const goSection=(section:string)=>{
-  pendingScroll=section;
-  history.pushState({},'','/');
-  window.dispatchEvent(new PopStateEvent('popstate'));
+  // If already on home, just scroll
+  if(typeof window !== 'undefined' && (location.pathname === '/' || location.pathname === '')){
+    history.replaceState({},'','/#'+section);
+    smoothScrollTo(section);
+  } else {
+    // Navigate to home with pending scroll
+    pendingScroll=section;
+    history.pushState({},'','/#'+section);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  }
 };
+
 const goSearch=(q:string)=>{
   history.pushState({},'','/information?q='+encodeURIComponent(q));
   window.dispatchEvent(new PopStateEvent('popstate'));
@@ -53,16 +67,35 @@ const getParam=(name:string)=>{
   return new URLSearchParams(window.location.search).get(name)||'';
 };
 const smoothScrollTo=(id:string)=>{
-  document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
+  const el = document.getElementById(id);
+  if(!el) return;
+  const y = el.getBoundingClientRect().top + window.scrollY - NAVBAR_HEIGHT - 8;
+  window.scrollTo({top:y,behavior:'smooth'});
 };
 const genRegNumber=()=>`ORI-2026-${String(Math.floor(Math.random()*900000)+100000)}`;
+
+// ─── Submission storage — use localStorage for persistence across tabs ────────
 const saveSubmission=(s:Submission)=>{
-  const list:Submission[]=JSON.parse(sessionStorage.getItem('submissions')||'[]');
-  sessionStorage.setItem('submissions',JSON.stringify([...list,s]));
+  const list:Submission[]=JSON.parse(localStorage.getItem('ombudsman_submissions')||'[]');
+  localStorage.setItem('ombudsman_submissions',JSON.stringify([...list,s]));
 };
 const findSubmission=(reg:string):Submission|null=>{
-  const list:Submission[]=JSON.parse(sessionStorage.getItem('submissions')||'[]');
+  const list:Submission[]=JSON.parse(localStorage.getItem('ombudsman_submissions')||'[]');
   return list.find(s=>s.regNumber.toLowerCase()===reg.toLowerCase())||null;
+};
+
+// ─── Demo data — pre-seeded so Lacak Pengaduan can be tested ──────────────────
+const DEMO_SUBMISSIONS:Submission[]=[
+  {regNumber:'ORI-2026-000001',tanggal:'15/09/2026',nama:'Ahmad Fauzi',perihal:'Penundaan Pembuatan Paspor',instansi:'Kantor Imigrasi Jakarta Selatan',status:'Dalam Proses Verifikasi'},
+  {regNumber:'ORI-2026-000002',tanggal:'22/09/2026',nama:'Siti Nurhaliza',perihal:'Penolakan Pembuatan Akta Kelahiran',instansi:'Dinas Kependudukan DKI Jakarta',status:'Sedang Ditindaklanjuti'},
+  {regNumber:'ORI-2026-000003',tanggal:'28/09/2026',nama:'Budi Santoso',perihal:'Pungutan Liar dalam Pengurusan Izin Usaha',instansi:'Dinas Perizinan Kota Bandung',status:'Dalam Proses'},
+];
+
+const seedDemoData=()=>{
+  const existing=localStorage.getItem('ombudsman_submissions');
+  if(!existing || JSON.parse(existing).length===0){
+    localStorage.setItem('ombudsman_submissions',JSON.stringify(DEMO_SUBMISSIONS));
+  }
 };
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
@@ -168,7 +201,8 @@ function NewsModal({articleId,onClose}:{articleId:string,onClose:()=>void}){
   );
 }
 
-// Header — new navbar: Beranda, Berita, Profil, Pengaduan (dropdown), Bantuan
+// Header — Beranda, Berita, Profil, Pengaduan (dropdown), Bantuan
+// Each menu targets a specific section via goSection with correct IDs
 function Header({page,navSection,onSearch}:{page:Page,navSection:string,onSearch:()=>void}){
   const [mobileOpen,setMobileOpen]=useState(false);
   const [dropOpen,setDropOpen]=useState(false);
@@ -198,17 +232,29 @@ function Header({page,navSection,onSearch}:{page:Page,navSection:string,onSearch
     return false;
   };
 
+  // Beranda click: always go to home, scroll to top (hero)
+  const handleBeranda=()=>{
+    if(page==='home'){
+      window.scrollTo({top:0,behavior:'smooth'});
+      history.replaceState({},'','/');
+    } else {
+      pendingScroll='hero';
+      go('home');
+    }
+    setMobileOpen(false);
+  };
+
   return (
     <header className="header">
-      <button className="brand" onClick={()=>go('home')} aria-label="Beranda">
+      <button className="brand" onClick={handleBeranda} aria-label="Beranda">
         <img src={AS.logo} alt="Ombudsman Republik Indonesia"/>
       </button>
       <nav className={mobileOpen?'nav open':'nav'}>
-        {/* Beranda */}
-        <button className={isActive('Beranda')?'active':''} onClick={()=>{go('home');setMobileOpen(false);}}>Beranda</button>
-        {/* Berita */}
+        {/* Beranda — always scrolls to top/hero */}
+        <button className={isActive('Beranda')?'active':''} onClick={handleBeranda}>Beranda</button>
+        {/* Berita — scrolls to #news section */}
         <button className={isActive('Berita')?'active':''} onClick={()=>{goSection('news');setMobileOpen(false);}}>Berita</button>
-        {/* Profil */}
+        {/* Profil — scrolls to #about section */}
         <button className={isActive('Profil')?'active':''} onClick={()=>{goSection('about');setMobileOpen(false);}}>Profil</button>
 
         {/* Pengaduan — dropdown */}
@@ -421,11 +467,25 @@ function SectionTitle({title,sub}:{title:string,sub:string}){
 function Home(){
   const [newsModal,setNewsModal]=useState<string|null>(null);
 
+  // Handle pending scroll (from other pages or hash in URL)
   useEffect(()=>{
+    // Check for pending scroll from goSection
     if(pendingScroll){
       const target=pendingScroll;
       pendingScroll=null;
-      setTimeout(()=>smoothScrollTo(target),120);
+      setTimeout(()=>{
+        if(target==='hero'){
+          window.scrollTo({top:0,behavior:'smooth'});
+        } else {
+          smoothScrollTo(target);
+        }
+      },150);
+    } else {
+      // Check URL hash on initial load
+      const hash = window.location.hash.replace('#','');
+      if(hash && hash !== 'hero'){
+        setTimeout(()=>smoothScrollTo(hash),150);
+      }
     }
   },[]);
 
@@ -441,6 +501,9 @@ function Home(){
     dispatch('hero');
     return()=>observer.disconnect();
   },[]);
+
+  // Seed demo data for Lacak Pengaduan
+  useEffect(()=>{seedDemoData();},[]);
 
   const services:[string,string,()=>void][]=[
     ['▣','Buat Pengaduan',()=>go('validate')],
@@ -535,13 +598,16 @@ function Home(){
   );
 }
 
-// ─── Track Page — improved, fully functional ──────────────────────────────────
+// ─── Track Page — with demo data for testing ──────────────────────────────────
 function Track(){
   const [id,setId]=useState('');
   const [result,setResult]=useState<Submission|null>(null);
   const [notFound,setNotFound]=useState(false);
   const [empty,setEmpty]=useState(false);
   const [loading,setLoading]=useState(false);
+
+  // Seed demo data
+  useEffect(()=>{seedDemoData();},[]);
 
   const handleLacak=()=>{
     const trimmed=id.trim();
@@ -588,7 +654,7 @@ function Track(){
               <AlertCircle size={18}/>
               <div>
                 <b>Nomor registrasi tidak ditemukan</b>
-                <p>Pastikan nomor yang Anda masukkan sudah benar. Format: ORI-XXXX-XXXXXX. Nomor registrasi diberikan setelah pengaduan berhasil disubmit pada sesi yang sama.</p>
+                <p>Pastikan nomor yang Anda masukkan sudah benar. Format: ORI-XXXX-XXXXXX. Coba gunakan salah satu nomor demo di bawah untuk menguji fitur ini.</p>
               </div>
             </div>
           )}
@@ -615,6 +681,24 @@ function Track(){
           </div>
         )}
 
+        {/* Demo data panel */}
+        <div className="demo-panel">
+          <div className="demo-panel-header">
+            <AlertCircle size={16}/>
+            <b>Data Demo untuk Pengujian</b>
+          </div>
+          <p>Gunakan salah satu nomor registrasi berikut untuk menguji fitur Lacak Pengaduan:</p>
+          <div className="demo-items">
+            {DEMO_SUBMISSIONS.map(d=>(
+              <button key={d.regNumber} className="demo-item" onClick={()=>{setId(d.regNumber);setNotFound(false);setEmpty(false);setResult(null);}}>
+                <code>{d.regNumber}</code>
+                <small>{d.perihal}</small>
+              </button>
+            ))}
+          </div>
+          <p className="demo-note">Klik nomor di atas untuk mengisi otomatis, lalu klik tombol &quot;Lacak&quot;. Data ini bersifat demonstrasi dan tidak terhubung ke sistem produksi.</p>
+        </div>
+
         <div className="tip-grid">
           {([[Search,'Masukkan Nomor Registrasi','Nomor registrasi dikirimkan ke halaman konfirmasi saat laporan berhasil dikirim.'],[Clock3,'Waktu Penanganan','Proses penanganan laporan membutuhkan 60–90 hari kerja tergantung kompleksitas.'],[Shield,'Kerahasiaan Terjamin','Identitas pelapor dijaga kerahasiaannya sesuai UU No. 37 Tahun 2008.']] as any[]).map(([Icon,t,d])=>(
             <div key={t}><Icon/><span><b>{t}</b><p>{d}</p></span></div>
@@ -629,16 +713,16 @@ function Track(){
   );
 }
 
-// ─── Validate Page — fixed radio: Sudah can fill, Belum stays empty ───────────
+// ─── Validate Page — fixed radio: both selections visually correct ─────────────
 function Validate(){
-  const [yes,setYes]=useState(true);
+  const [choice,setChoice]=useState<'sudah'|'belum'>('sudah');
   const [ticket,setTicket]=useState('');
   const [date,setDate]=useState('');
   const [showSearch,setShowSearch]=useState(false);
   const [errors,setErrors]=useState<Record<string,string>>({});
 
   const handleLanjut=()=>{
-    if(!yes){return;}
+    if(choice==='belum'){return;}
     const errs:Record<string,string>={};
     if(!ticket) errs.ticket='Nomor tiket wajib diisi';
     if(!date) errs.date='Tanggal pelaporan wajib diisi';
@@ -662,17 +746,17 @@ function Validate(){
           <h2>Validasi Laporan</h2>
           <label>Apakah Anda sudah melapor ke instansi terkait? <b>*</b></label>
           <div className="choices">
-            {/* Sudah: filled circle (◉) when selected, empty (◯) when not */}
-            <button className={yes?'selected':''} onClick={()=>{setYes(true);setErrors({})}}>
-              {yes?'◉':'◯'}　Sudah
+            {/* Sudah: filled circle when selected, empty when not */}
+            <button className={choice==='sudah'?'selected':''} onClick={()=>{setChoice('sudah');setErrors({})}}>
+              <span className="radio-circle">{choice==='sudah'?'◉':'◯'}</span>　Sudah
             </button>
-            {/* Belum: always shows empty circle (◯), never filled */}
-            <button className={!yes?'selected':''} onClick={()=>{setYes(false);setErrors({})}}>
-              ◯　Belum
+            {/* Belum: filled circle when selected, empty when not */}
+            <button className={choice==='belum'?'selected':''} onClick={()=>{setChoice('belum');setErrors({})}}>
+              <span className="radio-circle">{choice==='belum'?'◉':'◯'}</span>　Belum
             </button>
           </div>
 
-          {yes&&(
+          {choice==='sudah'&&(
             <div className="blue-fields">
               <Field label="Nomor Tiket/Bukti Lapor Instansi" value={ticket} set={v=>{setTicket(v);setErrors(e=>({...e,ticket:''}));}}
                 placeholder="Contoh: TKT-2024-001234" error={errors.ticket}/>
@@ -681,7 +765,7 @@ function Validate(){
             </div>
           )}
 
-          {!yes&&(
+          {choice==='belum'&&(
             <div className="belum-guidance">
               <AlertCircle size={20}/>
               <div>
@@ -700,7 +784,7 @@ function Validate(){
             <button onClick={()=>setShowSearch(true)}>Cari informasi terlebih dahulu　➜</button>
           </div>
           <div className="center">
-            {yes
+            {choice==='sudah'
               ?<Button onClick={handleLanjut}>Lanjut Isi Laporan　<ArrowRight/></Button>
               :<button className="btn" disabled style={{opacity:.4,cursor:'not-allowed'}}>Lapor ke Instansi Dulu</button>
             }
@@ -712,7 +796,7 @@ function Validate(){
 }
 
 // ─── Form — full lifted state, validation, per-step logic ─────────────────────
-const DEFAULT_PERSONAL:PersonalData={type:'individu',category:'',nik:'',nama:'',hp:'',email:'',alamat:'',provinsi:'',kota:'',rahasiakan:false};
+const DEFAULT_PERSONAL:PersonalData={type:'individu',category:'',nik:'',nama:'',hp:'',email:'',alamat:'',provinsi:'',kota:'',rahasiakan:false,namaOrganisasi:'',jabatan:''};
 const DEFAULT_COMPLAINT:ComplaintData={perihal:'',instansi:'',kronologi:'',harapan:''};
 const DEFAULT_EVIDENCE:EvidenceData={ktpFiles:[],docFiles:[],consent:false};
 
@@ -742,6 +826,11 @@ function Form(){
       else if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(personal.email)) e.email='Format email tidak valid';
       if(!personal.alamat.trim()) e.alamat='Alamat lengkap wajib diisi';
       if(!personal.provinsi||personal.provinsi==='') e.provinsi='Pilih provinsi';
+      // If instansi type, also validate org fields
+      if(personal.type==='instansi'){
+        if(!personal.namaOrganisasi.trim()) e.namaOrganisasi='Nama organisasi wajib diisi';
+        if(!personal.jabatan.trim()) e.jabatan='Jabatan wajib diisi';
+      }
     }
     if(s===2){
       if(!complaint.perihal.trim()) e.perihal='Perihal laporan wajib diisi';
@@ -828,19 +917,25 @@ function Form(){
   );
 }
 
+// ─── Horizontal Stepper — modern, clean, responsive ───────────────────────────
 function Steps({current}:{current:number}){
+  const labels = ['Data Diri','Detail Pengaduan','Unggah Bukti'];
   return (
-    <div className="steps">
+    <div className="stepper">
       {[1,2,3].map((n,i)=>(
-        <div className={n<current?'done':n===current?'now':''} key={n}>
-          <i>{n<current?<Check/>:n}</i>
-          <span>{['Data Diri','Detail Pengaduan','Unggah Bukti'][i]}</span>
+        <div className={'stepper-item'+(n<current?' done':n===current?' active':'')} key={n}>
+          <div className="stepper-circle">
+            {n<current?<Check size={16}/>:n}
+          </div>
+          {i<2&&<div className={'stepper-line'+(n<current?' done':'')}/>}
+          <span className="stepper-label">{labels[i]}</span>
         </div>
       ))}
     </div>
   );
 }
 
+// ─── Step 1: Personal Data — with Jenis Pelapor (Individu / Badan Hukum) ─────
 function StepPersonal({data,set,errors,setErrors}:{data:PersonalData,set:<K extends keyof PersonalData>(k:K,v:PersonalData[K])=>void,errors:Record<string,string>,setErrors:(f:(e:Record<string,string>)=>Record<string,string>)=>void}){
   const clrErr=(k:string)=>setErrors(e=>({...e,[k]:''}));
   return (
@@ -852,10 +947,26 @@ function StepPersonal({data,set,errors,setErrors}:{data:PersonalData,set:<K exte
         <p>Isi data sesuai dokumen identitas yang sah dan pastikan kontak aktif untuk menerima informasi perkembangan laporan.</p>
       </details>
 
-      <div className="choice-cards">
-        <button className={data.type==='individu'?'selected':''} onClick={()=>set('type','individu')}>◉　<b>Individu</b><small>Perseorangan</small></button>
-        <button className={data.type==='instansi'?'selected':''} onClick={()=>set('type','instansi')}>◯　<b>Badan Hukum/Instansi</b><small>Organisasi</small></button>
+      {/* Jenis Pelapor label */}
+      <div style={{marginBottom:8}}>
+        <label style={{fontWeight:700,fontSize:15,color:'#1e293b'}}>Jenis Pelapor <b style={{color:'#ef2b2b'}}>*</b></label>
       </div>
+      <div className="choice-cards">
+        <button className={data.type==='individu'?'selected':''} onClick={()=>set('type','individu')}>
+          <span className="radio-circle">{data.type==='individu'?'◉':'◯'}</span>　<b>Individu</b><small>Perseorangan</small>
+        </button>
+        <button className={data.type==='instansi'?'selected':''} onClick={()=>set('type','instansi')}>
+          <span className="radio-circle">{data.type==='instansi'?'◉':'◯'}</span>　<b>Badan Hukum/Organisasi</b><small>Perusahaan, Yayasan, dll</small>
+        </button>
+      </div>
+
+      {/* Conditional fields for Badan Hukum/Organisasi */}
+      {data.type==='instansi'&&(
+        <div className="org-fields">
+          <Field label="Nama Organisasi/Badan Hukum" value={data.namaOrganisasi} set={v=>{set('namaOrganisasi',v);clrErr('namaOrganisasi');}} placeholder="Contoh: PT. Sejahtera Mandiri" error={errors.namaOrganisasi}/>
+          <Field label="Jabatan dalam Organisasi" value={data.jabatan} set={v=>{set('jabatan',v);clrErr('jabatan');}} placeholder="Contoh: Direktur Utama" error={errors.jabatan}/>
+        </div>
+      )}
 
       <div style={{marginTop:16}}>
         <label style={{fontWeight:600,fontSize:14}}>Kategori Pelapor <b style={{color:'#ef2b2b'}}>*</b></label>
@@ -1104,7 +1215,7 @@ function Information(){
       {newsModal&&<NewsModal articleId={newsModal} onClose={()=>setNewsModal(null)}/>}
       <main className="search-page">
         <h1>
-          {q?<>Hasil Pencarian untuk "<em className="search-keyword">{q}</em>"</>:'Informasi Ombudsman RI'}
+          {q?<>Hasil Pencarian untuk &quot;<em className="search-keyword">{q}</em>&quot;</>:'Informasi Ombudsman RI'}
         </h1>
 
         <div className="large-search">
@@ -1133,7 +1244,7 @@ function Information(){
             <p className="results-meta">Menampilkan <b>{result.length} informasi</b> tersedia — ketik untuk mencari</p>
           )}
           {q&&result.length>0&&(
-            <p className="results-meta">Menampilkan <b>{result.length} hasil relevan</b> untuk "{q}"</p>
+            <p className="results-meta">Menampilkan <b>{result.length} hasil relevan</b> untuk &quot;{q}&quot;</p>
           )}
 
           {result.length>0?(
@@ -1226,7 +1337,7 @@ function InformationDetail(){
   );
 }
 
-// ─── Prosedur Pengaduan Page ──────────────────────────────────────────────────
+// ─── Prosedur Pengaduan Page — improved layout, responsive, no overflow ───────
 function Prosedur(){
   return (
     <Shell page="prosedur">
@@ -1242,76 +1353,86 @@ function Prosedur(){
         <div className="prosedur-content">
 
           {/* Yang Dapat Dilaporkan */}
-          <section className="card prosedur-section">
-            <div className="prosedur-sec-hd prosedur-hd-yellow">
+          <section className="prosedur-card">
+            <div className="prosedur-card-hd prosedur-hd-yellow">
               <AlertCircle size={18}/><h2>Yang Dapat Dilaporkan</h2>
             </div>
-            <p className="prosedur-body">
-              Dugaan Maladministrasi pada penyelenggara pelayanan publik yang diselenggarakan oleh penyelenggara Negara dan Pemerintahan termasuk yang diselenggarakan oleh Badan Usaha Milik Negara, Badan Usaha Milik Daerah, dan Badan Hukum Milik Negara serta badan swasta atau perseorangan yang diberi tugas menyelenggarakan Pelayanan Publik tertentu.
-            </p>
+            <div className="prosedur-card-body">
+              <p>
+                Dugaan Maladministrasi pada penyelenggara pelayanan publik yang diselenggarakan oleh penyelenggara Negara dan Pemerintahan termasuk yang diselenggarakan oleh Badan Usaha Milik Negara, Badan Usaha Milik Daerah, dan Badan Hukum Milik Negara serta badan swasta atau perseorangan yang diberi tugas menyelenggarakan Pelayanan Publik tertentu.
+              </p>
+            </div>
           </section>
 
           <h2 className="prosedur-cat">Persyaratan Laporan</h2>
 
           {/* Syarat Administrasi */}
-          <section className="card prosedur-section">
-            <div className="prosedur-sec-hd prosedur-hd-blue">
+          <section className="prosedur-card">
+            <div className="prosedur-card-hd prosedur-hd-blue">
               <Shield size={18}/><h2>Syarat Administrasi (Formil)</h2>
             </div>
-            <ol className="prosedur-ol">
-              <li>Fotokopi/scan KTP (apabila WNI) atau Kartu Izin Tinggal Tetap (KITAP) atau Kartu Izin Tinggal Sementara (KITAS) atas nama Pelapor yang masih berlaku (apabila Pelapor adalah WNA dan merupakan penduduk).</li>
-              <li>Kronologi dengan mencantumkan keterangan waktu (tanggal, bulan, tahun) uraian peristiwa yang disusun secara urut waktu tentang peristiwa/tindakan yang dilaporkan, instansi yang dilaporkan, serta harapan Laporan di Ombudsman.</li>
-              <li>Peristiwa/Tindakan Pelayanan Publik sudah disampaikan secara langsung kepada pihak Terlapor tetapi <strong>TIDAK</strong> mendapat penyelesaian.</li>
-              <li>Peristiwa/Tindakan Pelayanan Publik <strong>TIDAK LEBIH</strong> dari 2 (dua) tahun sejak terjadi.</li>
-              <li>Nomor Telepon yang dapat dihubungi serta e-mail (jika ada).</li>
-              <li>Surat kuasa khusus untuk melapor kepada Ombudsman apabila penyampaian Laporan dikuasakan kepada pihak lain.</li>
-              <li>Dokumen pengesahan/legalitas seperti akta pendirian dan perubahan yang menunjukkan kedudukan Pelapor dengan institusi yang diwakili (untuk Pelapor yang mewakili Badan Hukum seperti perusahaan, Yayasan, dsb).</li>
-              <li>Substansi yang dilaporkan tidak sedang dan/atau telah ditindaklanjuti oleh Ombudsman.</li>
-            </ol>
+            <div className="prosedur-card-body">
+              <ol className="prosedur-ol">
+                <li>Fotokopi/scan KTP (apabila WNI) atau Kartu Izin Tinggal Tetap (KITAP) atau Kartu Izin Tinggal Sementara (KITAS) atas nama Pelapor yang masih berlaku (apabila Pelapor adalah WNA dan merupakan penduduk).</li>
+                <li>Kronologi dengan mencantumkan keterangan waktu (tanggal, bulan, tahun) uraian peristiwa yang disusun secara urut waktu tentang peristiwa/tindakan yang dilaporkan, instansi yang dilaporkan, serta harapan Laporan di Ombudsman.</li>
+                <li>Peristiwa/Tindakan Pelayanan Publik sudah disampaikan secara langsung kepada pihak Terlapor tetapi <strong>TIDAK</strong> mendapat penyelesaian.</li>
+                <li>Peristiwa/Tindakan Pelayanan Publik <strong>TIDAK LEBIH</strong> dari 2 (dua) tahun sejak terjadi.</li>
+                <li>Nomor Telepon yang dapat dihubungi serta e-mail (jika ada).</li>
+                <li>Surat kuasa khusus untuk melapor kepada Ombudsman apabila penyampaian Laporan dikuasakan kepada pihak lain.</li>
+                <li>Dokumen pengesahan/legalitas seperti akta pendirian dan perubahan yang menunjukkan kedudukan Pelapor dengan institusi yang diwakili (untuk Pelapor yang mewakili Badan Hukum seperti perusahaan, Yayasan, dsb).</li>
+                <li>Substansi yang dilaporkan tidak sedang dan/atau telah ditindaklanjuti oleh Ombudsman.</li>
+              </ol>
+            </div>
           </section>
 
           {/* Syarat Substantif */}
-          <section className="card prosedur-section">
-            <div className="prosedur-sec-hd prosedur-hd-blue">
+          <section className="prosedur-card">
+            <div className="prosedur-card-hd prosedur-hd-blue">
               <Scale size={18}/><h2>Syarat Substantif (Materiel) Laporan</h2>
             </div>
-            <ol className="prosedur-ol">
-              <li>Substansi Laporan tidak sedang dan/atau telah menjadi objek pemeriksaan pengadilan.</li>
-              <li>Laporan tidak sedang dalam proses penyelesaian oleh instansi yang dilaporkan dan menurut Ombudsman proses penyelesaiannya masih dalam tenggang waktu yang patut.</li>
-              <li>Pelapor belum memperoleh penyelesaian dari instansi yang dilaporkan.</li>
-              <li>Substansi yang dilaporkan sesuai dengan ruang lingkup pelayanan publik yang diatur dalam Undang-Undang tentang Pelayanan Publik.</li>
-            </ol>
+            <div className="prosedur-card-body">
+              <ol className="prosedur-ol">
+                <li>Substansi Laporan tidak sedang dan/atau telah menjadi objek pemeriksaan pengadilan.</li>
+                <li>Laporan tidak sedang dalam proses penyelesaian oleh instansi yang dilaporkan dan menurut Ombudsman proses penyelesaiannya masih dalam tenggang waktu yang patut.</li>
+                <li>Pelapor belum memperoleh penyelesaian dari instansi yang dilaporkan.</li>
+                <li>Substansi yang dilaporkan sesuai dengan ruang lingkup pelayanan publik yang diatur dalam Undang-Undang tentang Pelayanan Publik.</li>
+              </ol>
+            </div>
           </section>
 
           <h2 className="prosedur-cat">Cara Menyampaikan Laporan</h2>
 
           {/* Cara Menyampaikan */}
-          <section className="card prosedur-section prosedur-cara-card">
-            <p className="prosedur-cara-sub">Sampaikan laporan melalui website <strong>www.ombudsman.go.id</strong></p>
-            <div className="prosedur-channels">
-              <div><Mail size={20}/><span>info@ombudsman.go.id</span></div>
-              <div><Phone size={20}/><span>(021) 5790-6277</span></div>
-              <div><MapPin size={20}/><span>Kantor Ombudsman RI terdekat</span></div>
+          <section className="prosedur-card prosedur-cara-card">
+            <div className="prosedur-card-body" style={{textAlign:'center'}}>
+              <p className="prosedur-cara-sub">Sampaikan laporan melalui website <strong>www.ombudsman.go.id</strong></p>
+              <div className="prosedur-channels">
+                <div><Mail size={20}/><span>info@ombudsman.go.id</span></div>
+                <div><Phone size={20}/><span>(021) 5790-6277</span></div>
+                <div><MapPin size={20}/><span>Kantor Ombudsman RI terdekat</span></div>
+              </div>
             </div>
           </section>
 
           {/* Bukan Wewenang */}
-          <section className="card prosedur-section">
-            <div className="prosedur-sec-hd prosedur-hd-red">
+          <section className="prosedur-card">
+            <div className="prosedur-card-hd prosedur-hd-red">
               <AlertCircle size={18}/><h2>Contoh Substansi Laporan Bukan Wewenang Ombudsman RI</h2>
             </div>
-            <div className="prosedur-bukan-grid">
-              <ul className="prosedur-ul">
-                <li>Permasalahan tindak pidana (korupsi, penganiayaan, pencurian)</li>
-                <li>Permasalahan perdata</li>
-              </ul>
-              <ul className="prosedur-ul">
-                <li>Permasalahan kode etik hakim</li>
-                <li>Permasalahan keberatan atas hasil pemilu</li>
-              </ul>
-              <ul className="prosedur-ul">
-                <li>Keberatan atas suatu Peraturan Perundang-Undangan</li>
-              </ul>
+            <div className="prosedur-card-body">
+              <div className="prosedur-bukan-grid">
+                <ul className="prosedur-ul">
+                  <li>Permasalahan tindak pidana (korupsi, penganiayaan, pencurian)</li>
+                  <li>Permasalahan perdata</li>
+                </ul>
+                <ul className="prosedur-ul">
+                  <li>Permasalahan kode etik hakim</li>
+                  <li>Permasalahan keberatan atas hasil pemilu</li>
+                </ul>
+                <ul className="prosedur-ul">
+                  <li>Keberatan atas suatu Peraturan Perundang-Undangan</li>
+                </ul>
+              </div>
             </div>
           </section>
 
