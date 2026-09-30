@@ -917,18 +917,22 @@ function Form(){
   );
 }
 
-// ─── Horizontal Stepper — modern, clean, responsive ───────────────────────────
+// ─── Horizontal Stepper — centered columns with arrow connectors ─────────────────────────────────
 function Steps({current}:{current:number}){
   const labels = ['Data Diri','Detail Pengaduan','Unggah Bukti'];
   return (
     <div className="stepper">
       {[1,2,3].map((n,i)=>(
-        <div className={'stepper-item'+(n<current?' done':n===current?' active':'')} key={n}>
-          <div className="stepper-circle">
-            {n<current?<Check size={16}/>:n}
+        <div key={n} className="stepper-row">
+          <div className={'stepper-col'+(n<current?' done':n===current?' active':'')}>
+            <div className="stepper-circle">
+              {n<current?<Check size={16}/>:n}
+            </div>
+            <span className="stepper-label">{labels[i]}</span>
           </div>
-          {i<2&&<div className={'stepper-line'+(n<current?' done':'')}/>}
-          <span className="stepper-label">{labels[i]}</span>
+          {i<2&&(
+            <div className={'stepper-arrow'+(n<current?' done':'')}>&#8250;</div>
+          )}
         </div>
       ))}
     </div>

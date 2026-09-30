@@ -134,17 +134,19 @@
 .info-link button{background:#fff;color:#155dfc;font-weight:600}
 .center{text-align:center;border-top:1px solid #eee;margin-top:16px;padding-top:24px}
 
-/* ── Horizontal Stepper — modern, clean ───────────────────────────────── */
-.stepper{display:flex;align-items:flex-start;justify-content:center;padding:28px 24px;margin-bottom:24px;background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 3px 7px #0002}
-.stepper-item{display:flex;align-items:center;position:relative}
-.stepper-circle{width:48px;height:48px;border-radius:50%;border:2px solid #ccd4df;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#8993a5;background:#fff;flex:0 0 auto;transition:all .25s;z-index:2}
-.stepper-line{width:80px;height:3px;background:#dde3ec;flex:0 0 auto;margin:0 4px;border-radius:4px;transition:background .25s}
-.stepper-label{position:absolute;top:58px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:12px;font-weight:500;color:#8993a5;transition:color .25s}
-.stepper-item.active .stepper-circle{background:linear-gradient(135deg,#1760ff,#1447e6);color:#fff;border-color:#1760ff;box-shadow:0 4px 12px #155dfc44}
-.stepper-item.active .stepper-label{color:#155dfc;font-weight:600}
-.stepper-item.done .stepper-circle{background:#22a562;color:#fff;border-color:#22a562}
-.stepper-item.done .stepper-label{color:#22a562;font-weight:600}
-.stepper-line.done{background:#22a562}
+/* ── Horizontal Stepper — centered columns + arrow connectors ─────────── */
+.stepper{display:flex;align-items:center;justify-content:center;padding:32px 24px 28px;margin-bottom:24px;background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 3px 7px #0002}
+.stepper-row{display:flex;align-items:center}
+.stepper-col{display:flex;flex-direction:column;align-items:center;gap:10px;width:120px}
+.stepper-circle{width:48px;height:48px;border-radius:50%;border:2px solid #ccd4df;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:17px;color:#9aa3b5;background:#fff;flex:0 0 auto;transition:all .25s}
+.stepper-label{font-size:12px;font-weight:500;color:#9aa3b5;text-align:center;transition:color .25s;white-space:nowrap}
+.stepper-col.active .stepper-circle{background:linear-gradient(135deg,#1760ff,#1447e6);color:#fff;border-color:#1760ff;box-shadow:0 4px 14px #155dfc44}
+.stepper-col.active .stepper-label{color:#155dfc;font-weight:700}
+.stepper-col.done .stepper-circle{background:linear-gradient(135deg,#1760ff,#1447e6);color:#fff;border-color:#1447e6;box-shadow:0 2px 8px #155dfc22}
+.stepper-col.done .stepper-label{color:#155dfc;font-weight:600}
+.stepper-arrow{font-size:22px;color:#d1d5e0;padding:0 8px;margin-bottom:22px;transition:color .25s;flex:0 0 auto;user-select:none;line-height:1}
+.stepper-arrow.done{color:#1760ff}
+
 
 .form-card{padding:40px}
 .form-card>p{border-bottom:1px solid #eee;padding-bottom:20px}
@@ -405,10 +407,11 @@ body.high-contrast{filter:contrast(1.5) brightness(0.95)}
   .detail-cta-box{flex-direction:column;align-items:flex-start}
   .detail-section{padding:24px}
   /* Stepper responsive */
-  .stepper{padding:20px 16px}
-  .stepper-line{width:40px}
-  .stepper-label{font-size:10px}
+  .stepper{padding:20px 12px}
+  .stepper-col{width:86px}
   .stepper-circle{width:40px;height:40px;font-size:14px}
+  .stepper-label{font-size:11px}
+  .stepper-arrow{font-size:18px;padding:0 4px}
   /* Mobile dropdown */
   .nav-dropdown{height:auto;flex-direction:column;align-items:stretch;position:static}
   .nav-drop-trigger{height:46px;width:100%;justify-content:space-between;padding:0 20px;border-bottom:none}
@@ -444,10 +447,11 @@ body.high-contrast{filter:contrast(1.5) brightness(0.95)}
   .track-result-grid{grid-template-columns:1fr}
   .belum-guidance{padding:16px}
   /* Stepper ultra-small */
-  .stepper{padding:16px 8px}
-  .stepper-line{width:24px}
-  .stepper-circle{width:36px;height:36px;font-size:13px}
-  .stepper-label{font-size:9px;top:48px}
+  .stepper{padding:14px 4px}
+  .stepper-col{width:70px}
+  .stepper-circle{width:34px;height:34px;font-size:13px}
+  .stepper-label{font-size:9px}
+  .stepper-arrow{font-size:14px;padding:0 2px}
   /* Demo panel */
   .demo-item{flex-direction:column;align-items:flex-start;gap:4px}
 }
