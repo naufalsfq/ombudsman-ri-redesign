@@ -1,6 +1,6 @@
 'use client';
 import {useEffect,useMemo,useRef,useState,useCallback} from 'react';
-import {Search,ChevronDown,ChevronRight,ArrowRight,FileText,HelpCircle,MapPin,Phone,Mail,Shield,Clock3,Upload,Check,Users,Building2,Scale,Menu,X,TrendingUp,MessageSquare,Accessibility,BookOpen,Newspaper,Gavel,ListChecks,AlertCircle,Loader2,Trash2} from 'lucide-react';
+import {Search,ChevronDown,ChevronRight,ArrowRight,FileText,HelpCircle,MapPin,Phone,Mail,Shield,Clock3,Upload,Check,Users,Building2,Scale,Menu,X,TrendingUp,MessageSquare,Accessibility,BookOpen,Newspaper,Gavel,ListChecks,AlertCircle,Loader2,Trash2,ClipboardList} from 'lucide-react';
 
 const AS={
   logo:'https://www.figma.com/api/mcp/asset/cbbd1a62-2e2d-48e0-9087-1fb4e84bb814.png',
@@ -11,7 +11,7 @@ const AS={
   about:'https://www.figma.com/api/mcp/asset/f9d033dc-09ab-41a5-8c63-9bd5eeeafead.png'
 };
 
-type Page='home'|'track'|'validate'|'form'|'faq'|'information'|'information-detail';
+type Page='home'|'track'|'validate'|'form'|'faq'|'information'|'information-detail'|'prosedur';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface PersonalData {
@@ -168,9 +168,23 @@ function NewsModal({articleId,onClose}:{articleId:string,onClose:()=>void}){
   );
 }
 
-// Header — fixed active state logic
+// Header — new navbar: Beranda, Berita, Profil, Pengaduan (dropdown), Bantuan
 function Header({page,navSection,onSearch}:{page:Page,navSection:string,onSearch:()=>void}){
-  const [open,setOpen]=useState(false);
+  const [mobileOpen,setMobileOpen]=useState(false);
+  const [dropOpen,setDropOpen]=useState(false);
+  const dropRef=useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(()=>{
+    const h=(e:MouseEvent)=>{
+      if(dropRef.current&&!dropRef.current.contains(e.target as Node)) setDropOpen(false);
+    };
+    document.addEventListener('mousedown',h);
+    return()=>document.removeEventListener('mousedown',h);
+  },[]);
+
+  // Close dropdown on page change
+  useEffect(()=>{setDropOpen(false);},[page]);
 
   const isActive=(label:string)=>{
     if(page==='home'){
@@ -179,49 +193,66 @@ function Header({page,navSection,onSearch}:{page:Page,navSection:string,onSearch
       if(label==='Berita') return navSection==='news';
       return false;
     }
-    if(label==='Pengaduan') return page==='validate'||page==='form';
-    if(label==='Produk') return page==='information'||page==='information-detail';
-    if(label==='FAQ') return page==='faq';
+    if(label==='Pengaduan') return page==='validate'||page==='form'||page==='track'||page==='prosedur';
+    if(label==='Bantuan') return page==='faq';
     return false;
   };
-
-  const navItems:[string,()=>void][]=[
-    ['Beranda',()=>{go('home');setOpen(false);}],
-    ['Profil',()=>{goSection('about');setOpen(false);}],
-    ['Berita',()=>{goSection('news');setOpen(false);}],
-    ['Pengaduan',()=>{go('validate');setOpen(false);}],
-    ['Produk',()=>{go('information');setOpen(false);}],
-    ['FAQ',()=>{go('faq');setOpen(false);}],
-  ];
 
   return (
     <header className="header">
       <button className="brand" onClick={()=>go('home')} aria-label="Beranda">
         <img src={AS.logo} alt="Ombudsman Republik Indonesia"/>
       </button>
-      <nav className={open?'nav open':'nav'}>
-        {navItems.map(([label,action])=>(
+      <nav className={mobileOpen?'nav open':'nav'}>
+        {/* Beranda */}
+        <button className={isActive('Beranda')?'active':''} onClick={()=>{go('home');setMobileOpen(false);}}>Beranda</button>
+        {/* Berita */}
+        <button className={isActive('Berita')?'active':''} onClick={()=>{goSection('news');setMobileOpen(false);}}>Berita</button>
+        {/* Profil */}
+        <button className={isActive('Profil')?'active':''} onClick={()=>{goSection('about');setMobileOpen(false);}}>Profil</button>
+
+        {/* Pengaduan — dropdown */}
+        <div className="nav-dropdown" ref={dropRef}>
           <button
-            key={label}
-            className={isActive(label)?'active':''}
-            onClick={action}
+            className={'nav-drop-trigger'+(isActive('Pengaduan')?' active':'')}
+            onClick={()=>setDropOpen(o=>!o)}
+            aria-expanded={dropOpen}
+            aria-haspopup="true"
           >
-            {label}
-            {['Profil','Berita','Pengaduan','Produk'].includes(label)&&<ChevronDown size={12}/>}
+            Pengaduan
+            <ChevronDown size={12} style={{transform:dropOpen?'rotate(180deg)':'',transition:'transform .2s',marginLeft:3,flexShrink:0}}/>
           </button>
-        ))}
-        <button aria-label="Cari" onClick={()=>{setOpen(false);onSearch();}}>
+          {dropOpen&&(
+            <div className="dropdown-menu" role="menu">
+              <button role="menuitem" onClick={()=>{go('prosedur');setDropOpen(false);setMobileOpen(false);}}>
+                <ClipboardList size={15}/>Prosedur Pengaduan
+              </button>
+              <button role="menuitem" onClick={()=>{go('validate');setDropOpen(false);setMobileOpen(false);}}>
+                <FileText size={15}/>Buat Pengaduan
+              </button>
+              <button role="menuitem" onClick={()=>{go('track');setDropOpen(false);setMobileOpen(false);}}>
+                <Search size={15}/>Lacak Pengaduan
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Bantuan (was FAQ) */}
+        <button className={isActive('Bantuan')?'active':''} onClick={()=>{go('faq');setMobileOpen(false);}}>Bantuan</button>
+
+        {/* Search icon */}
+        <button aria-label="Cari" onClick={()=>{setMobileOpen(false);onSearch();}}>
           <Search size={19}/>
         </button>
       </nav>
-      <button className="hamb" onClick={()=>setOpen(!open)} aria-label={open?'Tutup menu':'Buka menu'}>
-        {open?<X/>:<Menu/>}
+      <button className="hamb" onClick={()=>setMobileOpen(!mobileOpen)} aria-label={mobileOpen?'Tutup menu':'Buka menu'}>
+        {mobileOpen?<X/>:<Menu/>}
       </button>
     </header>
   );
 }
 
-// Footer — with working links
+// Footer — updated: FAQ→Bantuan, added Prosedur
 function Footer(){
   return (
     <footer>
@@ -239,10 +270,10 @@ function Footer(){
         </div>
         <div>
           <h3>Layanan</h3>
+          <button onClick={()=>go('prosedur')}>Prosedur Pengaduan</button>
           <button onClick={()=>go('validate')}>Pengaduan Online</button>
           <button onClick={()=>go('track')}>Lacak Laporan</button>
-          <button onClick={()=>go('information')}>Informasi Publik</button>
-          <button onClick={()=>go('faq')}>FAQ</button>
+          <button onClick={()=>go('faq')}>Bantuan</button>
         </div>
         <div>
           <h3>Kontak</h3>
@@ -321,7 +352,7 @@ function SearchPanel({close,navigate}:{close:()=>void,navigate:(q:string)=>void}
   );
 }
 
-// Shell — now manages navSection via CustomEvent from Home
+// Shell — manages nav section, updated crumb labels
 function Shell({page,children,crumb=true,searchQ=''}:{page:Page,children:React.ReactNode,crumb?:boolean,searchQ?:string}){
   const [search,setSearch]=useState(false);
   const [navSection,setNavSection]=useState('hero');
@@ -337,11 +368,12 @@ function Shell({page,children,crumb=true,searchQ=''}:{page:Page,children:React.R
   const navigate=(q:string)=>{closeSearch();goSearch(q);};
 
   const crumbLabel=()=>{
-    if(page==='faq') return 'FAQ Umum';
-    if(page==='track') return 'Cek Status Laporan';
+    if(page==='faq') return 'Bantuan';
+    if(page==='track') return 'Lacak Pengaduan';
     if(page==='information') return 'Hasil Pencarian';
     if(page==='information-detail') return null;
     if(page==='form') return 'Formulir Pengaduan';
+    if(page==='prosedur') return 'Prosedur Pengaduan';
     return 'Validasi Laporan';
   };
 
@@ -389,7 +421,6 @@ function SectionTitle({title,sub}:{title:string,sub:string}){
 function Home(){
   const [newsModal,setNewsModal]=useState<string|null>(null);
 
-  // Scroll intent on mount
   useEffect(()=>{
     if(pendingScroll){
       const target=pendingScroll;
@@ -398,7 +429,6 @@ function Home(){
     }
   },[]);
 
-  // Intersection observer for nav active state
   useEffect(()=>{
     const dispatch=(id:string)=>window.dispatchEvent(new CustomEvent('sectionChange',{detail:id}));
     const observer=new IntersectionObserver(entries=>{
@@ -408,16 +438,15 @@ function Home(){
       const el=document.getElementById(id);
       if(el) observer.observe(el);
     });
-    // Default to hero on mount
     dispatch('hero');
     return()=>observer.disconnect();
   },[]);
 
   const services:[string,string,()=>void][]=[
     ['▣','Buat Pengaduan',()=>go('validate')],
-    ['⌕','Cek Status Laporan',()=>go('track')],
+    ['⌕','Lacak Pengaduan',()=>go('track')],
     ['♧','Kantor Perwakilan',()=>goSearch('kantor perwakilan')],
-    ['▤','FAQ Pengaduan',()=>go('faq')],
+    ['▤','Pusat Bantuan',()=>go('faq')],
   ];
 
   return (
@@ -506,40 +535,63 @@ function Home(){
   );
 }
 
-// ─── Track Page — with sessionStorage lookup ──────────────────────────────────
+// ─── Track Page — improved, fully functional ──────────────────────────────────
 function Track(){
   const [id,setId]=useState('');
   const [result,setResult]=useState<Submission|null>(null);
   const [notFound,setNotFound]=useState(false);
   const [empty,setEmpty]=useState(false);
+  const [loading,setLoading]=useState(false);
 
   const handleLacak=()=>{
     const trimmed=id.trim();
     if(!trimmed){setEmpty(true);setNotFound(false);setResult(null);return;}
     setEmpty(false);
-    const found=findSubmission(trimmed);
-    if(found){setResult(found);setNotFound(false);}
-    else{setResult(null);setNotFound(true);}
+    setNotFound(false);
+    setResult(null);
+    setLoading(true);
+    setTimeout(()=>{
+      setLoading(false);
+      const found=findSubmission(trimmed);
+      if(found){setResult(found);setNotFound(false);}
+      else{setResult(null);setNotFound(true);}
+    },600);
   };
 
   return (
     <Shell page="track">
       <section className="blue-hero">
         <Search/>
-        <h1>Cek Status Laporan</h1>
+        <h1>Lacak Pengaduan</h1>
         <p>Pantau perkembangan laporan pengaduan Anda secara real-time<br/>dengan memasukkan nomor registrasi laporan.</p>
       </section>
       <main className="track-main">
         <div className="track-form">
           <label>Nomor Registrasi Laporan</label>
+          <p className="track-hint">Nomor registrasi diberikan pada halaman konfirmasi setelah pengaduan berhasil dikirim. Format: <strong>ORI-XXXX-XXXXXX</strong></p>
           <div>
-            <input value={id} onChange={e=>{setId(e.target.value);setNotFound(false);setEmpty(false);setResult(null);}}
-              onKeyDown={e=>e.key==='Enter'&&handleLacak()}
-              placeholder="Contoh: ORI-2026-001234"/>
-            <Button onClick={handleLacak}><Search size={16}/> Lacak</Button>
+            <input
+              value={id}
+              onChange={e=>{setId(e.target.value);setNotFound(false);setEmpty(false);setResult(null);}}
+              onKeyDown={e=>e.key==='Enter'&&!loading&&handleLacak()}
+              placeholder="Contoh: ORI-2026-001234"
+              aria-label="Nomor Registrasi Laporan"
+              disabled={loading}
+            />
+            <Button onClick={handleLacak} loading={loading} disabled={loading}>
+              <Search size={16}/> {loading?'Mencari...':'Lacak'}
+            </Button>
           </div>
           {empty&&<p className="form-message"><AlertCircle size={14}/> Silakan masukkan nomor registrasi laporan.</p>}
-          {notFound&&<p className="form-message"><AlertCircle size={14}/> Nomor registrasi tidak ditemukan. Periksa kembali nomor Anda.</p>}
+          {notFound&&(
+            <div className="track-not-found">
+              <AlertCircle size={18}/>
+              <div>
+                <b>Nomor registrasi tidak ditemukan</b>
+                <p>Pastikan nomor yang Anda masukkan sudah benar. Format: ORI-XXXX-XXXXXX. Nomor registrasi diberikan setelah pengaduan berhasil disubmit pada sesi yang sama.</p>
+              </div>
+            </div>
+          )}
         </div>
 
         {result&&(
@@ -564,7 +616,7 @@ function Track(){
         )}
 
         <div className="tip-grid">
-          {([[Search,'Masukkan Nomor Registrasi','Nomor registrasi dikirimkan ke email Anda saat laporan berhasil dikirim.'],[Clock3,'Waktu Penanganan','Proses penanganan laporan membutuhkan 60–90 hari kerja tergantung kompleksitas.'],[Shield,'Kerahasiaan Terjamin','Identitas pelapor dijaga kerahasiaannya sesuai UU No. 37 Tahun 2008.']] as any[]).map(([Icon,t,d])=>(
+          {([[Search,'Masukkan Nomor Registrasi','Nomor registrasi dikirimkan ke halaman konfirmasi saat laporan berhasil dikirim.'],[Clock3,'Waktu Penanganan','Proses penanganan laporan membutuhkan 60–90 hari kerja tergantung kompleksitas.'],[Shield,'Kerahasiaan Terjamin','Identitas pelapor dijaga kerahasiaannya sesuai UU No. 37 Tahun 2008.']] as any[]).map(([Icon,t,d])=>(
             <div key={t}><Icon/><span><b>{t}</b><p>{d}</p></span></div>
           ))}
         </div>
@@ -577,7 +629,7 @@ function Track(){
   );
 }
 
-// ─── Validate Page — fixed "Belum" flow ───────────────────────────────────────
+// ─── Validate Page — fixed radio: Sudah can fill, Belum stays empty ───────────
 function Validate(){
   const [yes,setYes]=useState(true);
   const [ticket,setTicket]=useState('');
@@ -610,8 +662,14 @@ function Validate(){
           <h2>Validasi Laporan</h2>
           <label>Apakah Anda sudah melapor ke instansi terkait? <b>*</b></label>
           <div className="choices">
-            <button className={yes?'selected':''} onClick={()=>{setYes(true);setErrors({})}}>◉　Sudah</button>
-            <button className={!yes?'selected':''} onClick={()=>{setYes(false);setErrors({})}}>◯　Belum</button>
+            {/* Sudah: filled circle (◉) when selected, empty (◯) when not */}
+            <button className={yes?'selected':''} onClick={()=>{setYes(true);setErrors({})}}>
+              {yes?'◉':'◯'}　Sudah
+            </button>
+            {/* Belum: always shows empty circle (◯), never filled */}
+            <button className={!yes?'selected':''} onClick={()=>{setYes(false);setErrors({})}}>
+              ◯　Belum
+            </button>
           </div>
 
           {yes&&(
@@ -630,8 +688,8 @@ function Validate(){
                 <b>Anda harus melapor ke instansi terkait terlebih dahulu</b>
                 <p>Sesuai prosedur Ombudsman RI, Anda wajib menyampaikan keluhan kepada instansi yang bersangkutan dan menunggu tanggapan sebelum dapat mengajukan laporan ke Ombudsman RI.</p>
                 <div className="belum-actions">
-                  <Button onClick={()=>go('faq')} secondary>Pelajari Prosedur</Button>
-                  <Button onClick={()=>goSearch('cara membuat pengaduan')} secondary>Cari Informasi</Button>
+                  <Button onClick={()=>go('prosedur')} secondary>Lihat Prosedur</Button>
+                  <Button onClick={()=>go('faq')} secondary>Pusat Bantuan</Button>
                 </div>
               </div>
             </div>
@@ -795,7 +853,7 @@ function StepPersonal({data,set,errors,setErrors}:{data:PersonalData,set:<K exte
       </details>
 
       <div className="choice-cards">
-        <button className={data.type==='individu'?'selected':''} onClick={()=>set('type','individu')}>◉　<b>Individu</b><small>Perorangan</small></button>
+        <button className={data.type==='individu'?'selected':''} onClick={()=>set('type','individu')}>◉　<b>Individu</b><small>Perseorangan</small></button>
         <button className={data.type==='instansi'?'selected':''} onClick={()=>set('type','instansi')}>◯　<b>Badan Hukum/Instansi</b><small>Organisasi</small></button>
       </div>
 
@@ -932,7 +990,7 @@ function StepEvidence({data,setData,errors,setErrors}:{data:EvidenceData,setData
   );
 }
 
-// ─── FAQ Page ─────────────────────────────────────────────────────────────────
+// ─── FAQ / Bantuan Page ───────────────────────────────────────────────────────
 function FAQ(){
   const [cat,setCat]=useState('Semua');
   const [q,setQ]=useState('');
@@ -942,7 +1000,7 @@ function FAQ(){
     <Shell page="faq">
       <section className="blue-hero faq-hero">
         <HelpCircle/>
-        <h1>Pertanyaan yang Sering Diajukan</h1>
+        <h1>Pusat Bantuan</h1>
         <p>Temukan jawaban atas pertanyaan umum seputar Ombudsman RI, tugas dan<br/>fungsinya, hak pelapor, dan informasi layanan publik.</p>
         <input value={q} onChange={e=>{setQ(e.target.value);setOpen(null);}} placeholder="Cari pertanyaan atau kata kunci..."/>
       </section>
@@ -977,7 +1035,7 @@ function FAQ(){
             <p>Hubungi kami langsung atau lihat panduan prosedur pengaduan secara lengkap.</p>
           </span>
           <Button secondary onClick={()=>window.open('tel:+622157906277')}>☎　Hubungi Kami</Button>
-          <Button secondary onClick={()=>go('validate')}>▣　Prosedur Pengaduan →</Button>
+          <Button secondary onClick={()=>go('prosedur')}>▣　Prosedur Pengaduan →</Button>
         </div>
       </main>
     </Shell>
@@ -1035,7 +1093,6 @@ function Information(){
     if(item.filterKey==='FAQ'){ go('faq'); return; }
     if(item.id==='pengaduan-online'){ go('validate'); return; }
     if(item.filterKey==='Dasar Hukum'){
-      // Open external law reference
       window.open('https://peraturan.go.id','_blank','noopener');
     }
   };
@@ -1098,7 +1155,7 @@ function Information(){
               <h2>Tidak menemukan informasi yang sesuai.</h2>
               <p>Coba gunakan kata kunci lain seperti <b>pengaduan</b>, <b>maladministrasi</b>, atau <b>hak pelapor</b>.</p>
               <div className="empty-actions">
-                <Button onClick={()=>go('faq')}>Lihat FAQ</Button>
+                <Button onClick={()=>go('faq')}>Lihat Bantuan</Button>
                 <Button secondary onClick={()=>go('validate')}>Prosedur Pengaduan</Button>
               </div>
             </div>
@@ -1169,12 +1226,119 @@ function InformationDetail(){
   );
 }
 
+// ─── Prosedur Pengaduan Page ──────────────────────────────────────────────────
+function Prosedur(){
+  return (
+    <Shell page="prosedur">
+      <main className="prosedur-main">
+        {/* Hero */}
+        <section className="blue-hero">
+          <ClipboardList size={48}/>
+          <small className="detail-tag">TATA CARA</small>
+          <h1>Penyampaian Laporan/Pengaduan<br/>Pelayanan Publik</h1>
+          <p>Panduan lengkap prosedur pengaduan maladministrasi kepada Ombudsman Republik Indonesia</p>
+        </section>
+
+        <div className="prosedur-content">
+
+          {/* Yang Dapat Dilaporkan */}
+          <section className="card prosedur-section">
+            <div className="prosedur-sec-hd prosedur-hd-yellow">
+              <AlertCircle size={18}/><h2>Yang Dapat Dilaporkan</h2>
+            </div>
+            <p className="prosedur-body">
+              Dugaan Maladministrasi pada penyelenggara pelayanan publik yang diselenggarakan oleh penyelenggara Negara dan Pemerintahan termasuk yang diselenggarakan oleh Badan Usaha Milik Negara, Badan Usaha Milik Daerah, dan Badan Hukum Milik Negara serta badan swasta atau perseorangan yang diberi tugas menyelenggarakan Pelayanan Publik tertentu.
+            </p>
+          </section>
+
+          <h2 className="prosedur-cat">Persyaratan Laporan</h2>
+
+          {/* Syarat Administrasi */}
+          <section className="card prosedur-section">
+            <div className="prosedur-sec-hd prosedur-hd-blue">
+              <Shield size={18}/><h2>Syarat Administrasi (Formil)</h2>
+            </div>
+            <ol className="prosedur-ol">
+              <li>Fotokopi/scan KTP (apabila WNI) atau Kartu Izin Tinggal Tetap (KITAP) atau Kartu Izin Tinggal Sementara (KITAS) atas nama Pelapor yang masih berlaku (apabila Pelapor adalah WNA dan merupakan penduduk).</li>
+              <li>Kronologi dengan mencantumkan keterangan waktu (tanggal, bulan, tahun) uraian peristiwa yang disusun secara urut waktu tentang peristiwa/tindakan yang dilaporkan, instansi yang dilaporkan, serta harapan Laporan di Ombudsman.</li>
+              <li>Peristiwa/Tindakan Pelayanan Publik sudah disampaikan secara langsung kepada pihak Terlapor tetapi <strong>TIDAK</strong> mendapat penyelesaian.</li>
+              <li>Peristiwa/Tindakan Pelayanan Publik <strong>TIDAK LEBIH</strong> dari 2 (dua) tahun sejak terjadi.</li>
+              <li>Nomor Telepon yang dapat dihubungi serta e-mail (jika ada).</li>
+              <li>Surat kuasa khusus untuk melapor kepada Ombudsman apabila penyampaian Laporan dikuasakan kepada pihak lain.</li>
+              <li>Dokumen pengesahan/legalitas seperti akta pendirian dan perubahan yang menunjukkan kedudukan Pelapor dengan institusi yang diwakili (untuk Pelapor yang mewakili Badan Hukum seperti perusahaan, Yayasan, dsb).</li>
+              <li>Substansi yang dilaporkan tidak sedang dan/atau telah ditindaklanjuti oleh Ombudsman.</li>
+            </ol>
+          </section>
+
+          {/* Syarat Substantif */}
+          <section className="card prosedur-section">
+            <div className="prosedur-sec-hd prosedur-hd-blue">
+              <Scale size={18}/><h2>Syarat Substantif (Materiel) Laporan</h2>
+            </div>
+            <ol className="prosedur-ol">
+              <li>Substansi Laporan tidak sedang dan/atau telah menjadi objek pemeriksaan pengadilan.</li>
+              <li>Laporan tidak sedang dalam proses penyelesaian oleh instansi yang dilaporkan dan menurut Ombudsman proses penyelesaiannya masih dalam tenggang waktu yang patut.</li>
+              <li>Pelapor belum memperoleh penyelesaian dari instansi yang dilaporkan.</li>
+              <li>Substansi yang dilaporkan sesuai dengan ruang lingkup pelayanan publik yang diatur dalam Undang-Undang tentang Pelayanan Publik.</li>
+            </ol>
+          </section>
+
+          <h2 className="prosedur-cat">Cara Menyampaikan Laporan</h2>
+
+          {/* Cara Menyampaikan */}
+          <section className="card prosedur-section prosedur-cara-card">
+            <p className="prosedur-cara-sub">Sampaikan laporan melalui website <strong>www.ombudsman.go.id</strong></p>
+            <div className="prosedur-channels">
+              <div><Mail size={20}/><span>info@ombudsman.go.id</span></div>
+              <div><Phone size={20}/><span>(021) 5790-6277</span></div>
+              <div><MapPin size={20}/><span>Kantor Ombudsman RI terdekat</span></div>
+            </div>
+          </section>
+
+          {/* Bukan Wewenang */}
+          <section className="card prosedur-section">
+            <div className="prosedur-sec-hd prosedur-hd-red">
+              <AlertCircle size={18}/><h2>Contoh Substansi Laporan Bukan Wewenang Ombudsman RI</h2>
+            </div>
+            <div className="prosedur-bukan-grid">
+              <ul className="prosedur-ul">
+                <li>Permasalahan tindak pidana (korupsi, penganiayaan, pencurian)</li>
+                <li>Permasalahan perdata</li>
+              </ul>
+              <ul className="prosedur-ul">
+                <li>Permasalahan kode etik hakim</li>
+                <li>Permasalahan keberatan atas hasil pemilu</li>
+              </ul>
+              <ul className="prosedur-ul">
+                <li>Keberatan atas suatu Peraturan Perundang-Undangan</li>
+              </ul>
+            </div>
+          </section>
+
+          {/* CTA */}
+          <div className="detail-cta-box">
+            <div>
+              <h3>Siap untuk mengajukan pengaduan?</h3>
+              <p>Proses pengaduan sepenuhnya gratis dan identitas Anda terlindungi.</p>
+            </div>
+            <div className="detail-cta-actions">
+              <Button onClick={()=>go('validate')}>▣　Buat Pengaduan</Button>
+              <Button secondary onClick={()=>go('track')}>⌕　Lacak Pengaduan</Button>
+            </div>
+          </div>
+
+        </div>
+      </main>
+    </Shell>
+  );
+}
+
 // ─── App Router ───────────────────────────────────────────────────────────────
 export default function App(){
   const route=():Page=>{
     if(typeof window==='undefined') return 'home';
     const p=location.pathname.slice(1).split('?')[0] as Page;
-    if(['track','validate','form','faq','information','information-detail'].includes(p)) return p;
+    if(['track','validate','form','faq','information','information-detail','prosedur'].includes(p)) return p;
     return 'home';
   };
   const [page,setPage]=useState<Page>(()=>typeof window==='undefined'?'home':route());
@@ -1189,6 +1353,7 @@ export default function App(){
   if(page==='validate') return <Validate/>;
   if(page==='form') return <Form/>;
   if(page==='faq') return <FAQ/>;
+  if(page==='prosedur') return <Prosedur/>;
   if(page==='information-detail') return <InformationDetail/>;
   return <Information/>;
 }
