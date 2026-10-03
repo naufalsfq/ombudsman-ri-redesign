@@ -1325,8 +1325,10 @@ function Prosedur(){
       <main className="prosedur-main">
         {/* Hero */}
         <section className="blue-hero">
-          <ClipboardList size={48}/>
-          <small className="detail-tag">TATA CARA</small>
+          <div className="prosedur-hero-badge">
+            <ClipboardList size={22}/>
+            <small className="detail-tag">TATA CARA</small>
+          </div>
           <h1>Penyampaian Laporan/Pengaduan<br/>Pelayanan Publik</h1>
           <p>Panduan lengkap prosedur pengaduan maladministrasi kepada Ombudsman Republik Indonesia</p>
         </section>
@@ -1418,12 +1420,11 @@ function Prosedur(){
           </section>
 
           {/* CTA */}
-          <div className="detail-cta-box">
-            <div>
-              <h3>Siap untuk mengajukan pengaduan?</h3>
-              <p>Proses pengaduan sepenuhnya gratis dan identitas Anda terlindungi.</p>
-            </div>
-            <div className="detail-cta-actions">
+          <div className="prosedur-cta">
+            <div className="prosedur-cta-icon"><FileText size={28}/></div>
+            <h3>Siap untuk mengajukan pengaduan?</h3>
+            <p>Proses pengaduan sepenuhnya gratis dan terjamin kerahasiaannya sesuai UU No. 37 Tahun 2008.</p>
+            <div className="prosedur-cta-actions">
               <Button onClick={()=>go('validate')}>▣　Buat Pengaduan</Button>
               <Button secondary onClick={()=>go('track')}>⌕　Lacak Pengaduan</Button>
             </div>

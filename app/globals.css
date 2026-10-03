@@ -354,8 +354,12 @@ body.high-contrast{filter:contrast(1.5) brightness(0.95)}
 
 /* ── Prosedur Pengaduan Page — redesigned cards ────────────────────────── */
 .prosedur-main{background:#f8fafc;min-height:100vh}
-.prosedur-content{max-width:900px;margin:0 auto;padding:36px max(20px,calc((100% - 900px)/2)) 72px}
+.prosedur-content{max-width:960px;width:100%;margin:0 auto;padding:36px 40px 72px;overflow-x:hidden}
 .prosedur-cat{font-size:22px;color:#003087;text-align:center;margin:36px 0 20px;font-weight:800;letter-spacing:-.5px}
+
+/* Hero badge — icon + label inline centered */
+.prosedur-hero-badge{display:inline-flex;align-items:center;gap:10px;margin-bottom:18px}
+.prosedur-hero-badge svg{color:rgba(255,255,255,.9);flex:0 0 auto}
 
 /* Prosedur cards — proper container with no overflow */
 .prosedur-card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;box-shadow:0 2px 6px #0001;margin-bottom:20px}
@@ -377,9 +381,16 @@ body.high-contrast{filter:contrast(1.5) brightness(0.95)}
 .prosedur-ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px}
 .prosedur-ul li{font-size:13px;line-height:1.55;color:#374151}
 
-/* ── Prosedur: prevent any overflow on all viewports ───────────────────── */
-.prosedur-main *{max-width:100%;word-break:break-word;overflow-wrap:break-word}
-.prosedur-content{overflow-x:hidden}
+/* Prosedur CTA card — centered vertical, buttons always inside */
+.prosedur-cta{background:linear-gradient(120deg,#002979,#0757cb);border-radius:16px;padding:36px 32px;margin-top:8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:0}
+.prosedur-cta-icon{width:56px;height:56px;background:rgba(255,255,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;color:#fff;flex:0 0 auto}
+.prosedur-cta h3{color:#fff;margin:0 0 10px;font-size:20px;font-weight:700;line-height:1.3}
+.prosedur-cta>p{color:#c7d4ee;margin:0 0 24px;font-size:14px;line-height:1.65;max-width:480px}
+.prosedur-cta-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;width:100%}
+.prosedur-cta-actions .btn{min-width:160px;flex:1 0 auto;max-width:220px;justify-content:center}
+
+/* ── Prosedur: prevent text overflow on all viewports ──────────────────── */
+.prosedur-card-body p,.prosedur-ol li,.prosedur-ul li{word-break:break-word;overflow-wrap:break-word}
 
 /* ── Responsive: 800px ────────────────────────────────────────────────── */
 @media(max-width:800px){
@@ -429,6 +440,8 @@ body.high-contrast{filter:contrast(1.5) brightness(0.95)}
   .prosedur-ol{padding-left:18px}
   .prosedur-cat{font-size:18px;margin:28px 0 16px}
   .prosedur-cara-sub{font-size:14px}
+  .prosedur-cta{padding:28px 20px}
+  .prosedur-cta-actions .btn{max-width:100%;flex:1 0 140px}
 }
 
 /* ── Responsive: 480px ────────────────────────────────────────────────── */
@@ -466,4 +479,7 @@ body.high-contrast{filter:contrast(1.5) brightness(0.95)}
   .prosedur-ol,.prosedur-ul{padding-left:14px}
   .prosedur-channels{gap:12px}
   .prosedur-channels>div{font-size:13px}
+  .prosedur-cta{padding:24px 16px}
+  .prosedur-cta-actions{flex-direction:column}
+  .prosedur-cta-actions .btn{max-width:100%;width:100%}
 }
