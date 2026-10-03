@@ -756,10 +756,7 @@ function Validate(){
             </div>
           )}
 
-          <div className="info-link">
-            Belum yakin bagaimana cara melapor?
-            <button onClick={()=>go('prosedur')}>Pelajari prosedur pengaduan　➜</button>
-          </div>
+
           <div className="center">
             {choice==='sudah'
               ?<Button onClick={handleLanjut}>Lanjut Isi Laporan　<ArrowRight/></Button>
@@ -1421,9 +1418,11 @@ function Prosedur(){
 
           {/* CTA */}
           <div className="prosedur-cta">
-            <div className="prosedur-cta-icon"><FileText size={28}/></div>
-            <h3>Siap untuk mengajukan pengaduan?</h3>
-            <p>Proses pengaduan sepenuhnya gratis dan terjamin kerahasiaannya sesuai UU No. 37 Tahun 2008.</p>
+            <div className="prosedur-cta-left">
+              <div className="prosedur-cta-icon"><FileText size={24}/></div>
+              <h3>Siap mengajukan pengaduan?</h3>
+              <p>Proses pengaduan sepenuhnya gratis dan terjamin kerahasiaannya sesuai UU No. 37 Tahun 2008.</p>
+            </div>
             <div className="prosedur-cta-actions">
               <Button onClick={()=>go('validate')}>▣　Buat Pengaduan</Button>
               <Button secondary onClick={()=>go('track')}>⌕　Lacak Pengaduan</Button>

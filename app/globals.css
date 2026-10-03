@@ -223,7 +223,7 @@
 .detail-main{background:#f8fafc;min-height:100vh}
 .detail-hero{padding:48px 20px}
 .detail-hero>svg{width:52px;height:52px;padding:12px;background:#ffffff17;border-radius:14px;margin-bottom:12px}
-.detail-tag{font-size:11px;font-weight:700;letter-spacing:1px;color:#93c5fd;background:#ffffff14;padding:5px 12px;border-radius:99px;display:inline-block;margin-bottom:12px}
+.detail-tag{font-size:11px;font-weight:700;letter-spacing:1px;color:#93c5fd;background:#ffffff14;padding:5px 12px;border-radius:99px;display:inline-block;margin-bottom:0}
 .detail-hero h1{font-size:30px;margin:8px 0 14px;max-width:700px;margin-left:auto;margin-right:auto;line-height:1.3}
 .detail-hero p{color:#c7d4ee;font-size:15px;max-width:600px;margin:0 auto;line-height:1.65}
 .detail-content{max-width:860px;margin:0 auto;padding:32px max(16px,calc((100% - 860px)/2)) 64px}
@@ -354,12 +354,13 @@ body.high-contrast{filter:contrast(1.5) brightness(0.95)}
 
 /* ── Prosedur Pengaduan Page — redesigned cards ────────────────────────── */
 .prosedur-main{background:#f8fafc;min-height:100vh}
-.prosedur-content{max-width:960px;width:100%;margin:0 auto;padding:36px 40px 72px;overflow-x:hidden}
+.prosedur-content{width:100%;max-width:1100px;margin:0 auto;padding:40px max(24px,calc((100% - 1100px)/2 + 24px)) 80px;overflow-x:hidden}
 .prosedur-cat{font-size:22px;color:#003087;text-align:center;margin:36px 0 20px;font-weight:800;letter-spacing:-.5px}
 
-/* Hero badge — icon + label inline centered */
-.prosedur-hero-badge{display:inline-flex;align-items:center;gap:10px;margin-bottom:18px}
-.prosedur-hero-badge svg{color:rgba(255,255,255,.9);flex:0 0 auto}
+/* Hero badge — icon + label inline, vertically centered */
+.prosedur-hero-badge{display:inline-flex;align-items:center;gap:12px;margin-bottom:20px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:99px;padding:8px 18px 8px 12px}
+.prosedur-hero-badge svg{color:#fff;flex:0 0 auto}
+.prosedur-hero-badge .detail-tag{background:none;border:none;padding:0;margin:0;font-size:12px;letter-spacing:1.5px;color:#e0eaff;font-weight:700}
 
 /* Prosedur cards — proper container with no overflow */
 .prosedur-card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;box-shadow:0 2px 6px #0001;margin-bottom:20px}
@@ -381,13 +382,14 @@ body.high-contrast{filter:contrast(1.5) brightness(0.95)}
 .prosedur-ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px}
 .prosedur-ul li{font-size:13px;line-height:1.55;color:#374151}
 
-/* Prosedur CTA card — centered vertical, buttons always inside */
-.prosedur-cta{background:linear-gradient(120deg,#002979,#0757cb);border-radius:16px;padding:36px 32px;margin-top:8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:0}
-.prosedur-cta-icon{width:56px;height:56px;background:rgba(255,255,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;color:#fff;flex:0 0 auto}
-.prosedur-cta h3{color:#fff;margin:0 0 10px;font-size:20px;font-weight:700;line-height:1.3}
-.prosedur-cta>p{color:#c7d4ee;margin:0 0 24px;font-size:14px;line-height:1.65;max-width:480px}
-.prosedur-cta-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;width:100%}
-.prosedur-cta-actions .btn{min-width:160px;flex:1 0 auto;max-width:220px;justify-content:center}
+/* Prosedur CTA card — modern two-col desktop, stacked mobile */
+.prosedur-cta{background:linear-gradient(120deg,#001e6c,#0757cb);border-radius:20px;padding:40px 40px;margin-top:8px;display:flex;align-items:center;gap:32px;box-shadow:0 8px 32px rgba(0,40,140,.25)}
+.prosedur-cta-left{flex:1;min-width:0}
+.prosedur-cta-icon{width:52px;height:52px;background:rgba(255,255,255,.15);border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;color:#fff;flex:0 0 auto}
+.prosedur-cta h3{color:#fff;margin:0 0 8px;font-size:22px;font-weight:700;line-height:1.3}
+.prosedur-cta>p,.prosedur-cta-left>p{color:#bfcfee;margin:0;font-size:14px;line-height:1.65}
+.prosedur-cta-actions{display:flex;flex-direction:column;gap:12px;flex:0 0 auto;min-width:200px}
+.prosedur-cta-actions .btn{width:100%;justify-content:center;min-height:48px;white-space:nowrap}
 
 /* ── Prosedur: prevent text overflow on all viewports ──────────────────── */
 .prosedur-card-body p,.prosedur-ol li,.prosedur-ul li{word-break:break-word;overflow-wrap:break-word}
@@ -432,7 +434,7 @@ body.high-contrast{filter:contrast(1.5) brightness(0.95)}
   .dropdown-menu button:hover{background:rgba(255,255,255,.12);color:#fff}
   .dropdown-menu button svg{color:rgba(255,255,255,.7)}
   /* Prosedur mobile */
-  .prosedur-content{padding:20px 16px 56px}
+  .prosedur-content{padding:24px 16px 56px}
   .prosedur-bukan-grid{grid-template-columns:1fr}
   .prosedur-channels{gap:16px;justify-content:flex-start;flex-direction:column;align-items:flex-start}
   .prosedur-card-hd{padding:14px 18px}
@@ -440,8 +442,10 @@ body.high-contrast{filter:contrast(1.5) brightness(0.95)}
   .prosedur-ol{padding-left:18px}
   .prosedur-cat{font-size:18px;margin:28px 0 16px}
   .prosedur-cara-sub{font-size:14px}
-  .prosedur-cta{padding:28px 20px}
-  .prosedur-cta-actions .btn{max-width:100%;flex:1 0 140px}
+  .prosedur-cta{flex-direction:column;align-items:flex-start;padding:28px 24px;gap:24px}
+  .prosedur-cta-left{width:100%}
+  .prosedur-cta-actions{flex-direction:row;width:100%;min-width:unset}
+  .prosedur-cta-actions .btn{flex:1}
 }
 
 /* ── Responsive: 480px ────────────────────────────────────────────────── */
@@ -479,7 +483,7 @@ body.high-contrast{filter:contrast(1.5) brightness(0.95)}
   .prosedur-ol,.prosedur-ul{padding-left:14px}
   .prosedur-channels{gap:12px}
   .prosedur-channels>div{font-size:13px}
-  .prosedur-cta{padding:24px 16px}
+  .prosedur-cta{padding:22px 16px;gap:20px}
   .prosedur-cta-actions{flex-direction:column}
-  .prosedur-cta-actions .btn{max-width:100%;width:100%}
+  .prosedur-cta-actions .btn{width:100%}
 }
