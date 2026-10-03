@@ -66,10 +66,7 @@
 .service-grid button:nth-child(3) i{background:#1ba470}
 .service-grid button:nth-child(4) i{background:#eb8b24}
 .stats{background:#f1f5fa}
-.stat-grid .stat{background:#dbeafe;border-radius:8px;height:222px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
-.stat i{width:56px;height:56px;display:grid;place-items:center;background:#eff6ff;border-radius:8px;color:#003087}
-.stat strong{font-size:32px}
-.stat small{color:#155dfc}
+
 .news .section-head{display:flex;justify-content:space-between;align-items:end}
 .news .section-title{text-align:left}
 .news-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:40px}
@@ -380,6 +377,10 @@ body.high-contrast{filter:contrast(1.5) brightness(0.95)}
 .prosedur-ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px}
 .prosedur-ul li{font-size:13px;line-height:1.55;color:#374151}
 
+/* ── Prosedur: prevent any overflow on all viewports ───────────────────── */
+.prosedur-main *{max-width:100%;word-break:break-word;overflow-wrap:break-word}
+.prosedur-content{overflow-x:hidden}
+
 /* ── Responsive: 800px ────────────────────────────────────────────────── */
 @media(max-width:800px){
   .header{padding:0 18px}
@@ -420,10 +421,14 @@ body.high-contrast{filter:contrast(1.5) brightness(0.95)}
   .dropdown-menu button:hover{background:rgba(255,255,255,.12);color:#fff}
   .dropdown-menu button svg{color:rgba(255,255,255,.7)}
   /* Prosedur mobile */
+  .prosedur-content{padding:20px 16px 56px}
   .prosedur-bukan-grid{grid-template-columns:1fr}
-  .prosedur-channels{gap:16px;justify-content:flex-start}
+  .prosedur-channels{gap:16px;justify-content:flex-start;flex-direction:column;align-items:flex-start}
   .prosedur-card-hd{padding:14px 18px}
   .prosedur-card-body{padding:18px}
+  .prosedur-ol{padding-left:18px}
+  .prosedur-cat{font-size:18px;margin:28px 0 16px}
+  .prosedur-cara-sub{font-size:14px}
 }
 
 /* ── Responsive: 480px ────────────────────────────────────────────────── */
@@ -454,4 +459,11 @@ body.high-contrast{filter:contrast(1.5) brightness(0.95)}
   .stepper-arrow{font-size:14px;padding:0 2px}
   /* Demo panel */
   .demo-item{flex-direction:column;align-items:flex-start;gap:4px}
+  /* Prosedur ultra-small */
+  .prosedur-content{padding:16px 12px 48px}
+  .prosedur-card-body{padding:14px}
+  .prosedur-card-hd{padding:12px 14px}
+  .prosedur-ol,.prosedur-ul{padding-left:14px}
+  .prosedur-channels{gap:12px}
+  .prosedur-channels>div{font-size:13px}
 }

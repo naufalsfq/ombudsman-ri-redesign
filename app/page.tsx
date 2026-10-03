@@ -549,14 +549,7 @@ function Home(){
           </div>
         </section>
 
-        <section id="stats" className="stats">
-          <SectionTitle title="Dampak Kami untuk Indonesia" sub="Bersama membangun pelayanan publik yang lebih baik dan akuntabel"/>
-          <div className="stat-grid">
-            {([[FileText,'12,847','Laporan Diselesaikan','+15% dari tahun lalu'],[Users,'45,892','Masyarakat Terlayani','+23% dari tahun lalu'],[TrendingUp,'89%','Tingkat Kepuasan','+5% dari tahun lalu'],[Building2,'34','Kantor Perwakilan','Di seluruh Indonesia']] as const).map(([Icon,n,l,s]:any)=>(
-              <div className="stat" key={l}><i><Icon/></i><strong>{n}</strong><b>{l}</b><small>{s}</small></div>
-            ))}
-          </div>
-        </section>
+
 
         <section id="news" className="news">
           <div className="section-head">
@@ -681,23 +674,7 @@ function Track(){
           </div>
         )}
 
-        {/* Demo data panel */}
-        <div className="demo-panel">
-          <div className="demo-panel-header">
-            <AlertCircle size={16}/>
-            <b>Data Demo untuk Pengujian</b>
-          </div>
-          <p>Gunakan salah satu nomor registrasi berikut untuk menguji fitur Lacak Pengaduan:</p>
-          <div className="demo-items">
-            {DEMO_SUBMISSIONS.map(d=>(
-              <button key={d.regNumber} className="demo-item" onClick={()=>{setId(d.regNumber);setNotFound(false);setEmpty(false);setResult(null);}}>
-                <code>{d.regNumber}</code>
-                <small>{d.perihal}</small>
-              </button>
-            ))}
-          </div>
-          <p className="demo-note">Klik nomor di atas untuk mengisi otomatis, lalu klik tombol &quot;Lacak&quot;. Data ini bersifat demonstrasi dan tidak terhubung ke sistem produksi.</p>
-        </div>
+
 
         <div className="tip-grid">
           {([[Search,'Masukkan Nomor Registrasi','Nomor registrasi dikirimkan ke halaman konfirmasi saat laporan berhasil dikirim.'],[Clock3,'Waktu Penanganan','Proses penanganan laporan membutuhkan 60–90 hari kerja tergantung kompleksitas.'],[Shield,'Kerahasiaan Terjamin','Identitas pelapor dijaga kerahasiaannya sesuai UU No. 37 Tahun 2008.']] as any[]).map(([Icon,t,d])=>(
@@ -780,8 +757,8 @@ function Validate(){
           )}
 
           <div className="info-link">
-            Belum yakin apakah masalah Anda termasuk maladministrasi?
-            <button onClick={()=>setShowSearch(true)}>Cari informasi terlebih dahulu　➜</button>
+            Belum yakin bagaimana cara melapor?
+            <button onClick={()=>go('prosedur')}>Pelajari prosedur pengaduan　➜</button>
           </div>
           <div className="center">
             {choice==='sudah'
